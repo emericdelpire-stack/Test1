@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Check-list Inscriptions Condorcet</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            condorcet: {
+              primary: '#54909B',      /* Bleu-vert / Teal dominant (84/144/155) */
+              dark: '#3A6870',         /* Teinte plus sombre pour contrastes forts */
+              light: '#EDF5F6',        /* Teinte très claire pour arrière-plans */
+              gray: '#9A9A9A',         /* Gris moyen (154/154/154) */
+              charcoal: '#4B4B4B',     /* Gris foncé / Anthracite (75/75/75) */
+              lightgray: '#F3F4F6'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+
+    /* Styles spécifiques pour l'impression A4 */
+    @media print {
+      body {
+        background-color: #fff !important;
+        color: #000 !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .print-shadow-none {
+        box-shadow: none !important;
+      }
+      .print-border {
+        border: 1.5px solid #4B4B4B !important;
+      }
+      .print-border-light {
+        border: 1px solid #9A9A9A !important;
+      }
+      .page-break {
+        page-break-before: always;
+      }
+      /* Marges de page d'impression */
+      @page {
+        size: A4 portrait;
+        margin: 8mm 12mm 8mm 12mm;
+      }
+      /* Forcer l'affichage des couleurs de fond simples lors de l'impression */
+      .print-bg-gray {
+        background-color: #F3F4F6 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .print-bg-condorcet-light {
+        background-color: #EDF5F6 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .print-bg-red {
+        background-color: #FEF2F2 !important;
+        border-color: #FCA5A5 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .print-text-condorcet-dark {
+        color: #3A6870 !important;
+      }
+    }
+
+    /* Style des checkboxes pour l'écriture manuelle */
+    .checkbox-manual {
+      width: 14px;
+      height: 14px;
+      border: 1.5px solid #54909B;
+      border-radius: 2.5px;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+    @media print {
+      .checkbox-manual {
+        border: 1.5px solid #4B4B4B !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-100 min-h-screen text-condorcet-charcoal flex flex-col antialiased">
+
+  <!-- Bouton d'impression flottant et discret (Masqué à l'impression) -->
+  <button onclick="window.print()" class="no-print fixed bottom-6 right-6 bg-condorcet-primary hover:bg-condorcet-dark text-white p-4 rounded-full shadow-xl transition-all hover:scale-110 flex items-center justify-center z-50" title="Imprimer la fiche">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+    </svg>
+  </button>
+
+  <!-- CONTENU DE LA PAGE (Optimisé pour impression A4) -->
+  <main class="flex-grow p-4 md:p-8 flex justify-center items-start">
+    
+    <!-- FEUILLE A4 DE LA CHECK-LIST -->
+    <div id="printable-area" class="w-full max-w-[210mm] min-h-[297mm] bg-white text-condorcet-charcoal px-8 py-8 md:px-10 md:py-10 shadow-xl print-shadow-none rounded-lg border border-slate-200 print-border flex flex-col justify-between">
+      
+      <div>
+        <!-- EN-TÊTE DU DOCUMENT -->
+        <div class="flex justify-between items-start border-b-2 border-condorcet-primary pb-4 mb-5">
+          <div class="flex flex-col gap-1">
+            <div class="text-xs uppercase tracking-wider text-condorcet-gray font-bold">Haute École Provinciale de Condorcet</div>
+            <h2 class="text-xl font-extrabold text-condorcet-dark uppercase tracking-tight">Documents administratifs à fournir</h2>
+          </div>
+          <div class="text-right flex flex-col items-end">
+            <div class="bg-condorcet-light text-condorcet-dark font-bold text-[11px] uppercase px-3 py-1.5 rounded-md border border-condorcet-primary/30 print-bg-condorcet-light print-border flex flex-col items-center gap-1 shadow-sm">
+              <span class="text-condorcet-dark/70 tracking-wider text-center">Année Académique :</span>
+              <div class="flex items-center justify-center w-full">
+                <select id="select-annee" class="bg-transparent font-extrabold cursor-pointer focus:outline-none text-condorcet-dark hover:text-condorcet-primary transition-colors print:hidden text-xs text-center">
+                  <option value="2026 - 2027" selected>2026 - 2027</option>
+                  <option value="2027 - 2028">2027 - 2028</option>
+                  <option value="2028 - 2029">2028 - 2029</option>
+                  <option value="2029 - 2030">2029 - 2030</option>
+                  <option value="2030 - 2031">2030 - 2031</option>
+                  <option value="2031 - 2032">2031 - 2032</option>
+                </select>
+                <!-- Texte statique affiché uniquement lors de l'impression à la place du select -->
+                <span id="print-annee" class="hidden print:inline font-extrabold text-condorcet-dark text-xs text-center">2026 - 2027</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 1 : VOTRE GESTIONNAIRE DE DOSSIER -->
+        <div class="mb-5">
+          <h3 class="text-xs uppercase font-extrabold text-condorcet-dark tracking-wider mb-2.5 flex items-center gap-2 border-b border-condorcet-primary pb-1">
+            <span>1. Votre gestionnaire de dossier</span>
+          </h3>
+          
+          <div class="border border-slate-200 rounded-lg p-3 bg-slate-50/50 space-y-2 pl-3 print-border print-bg-gray">
+            <!-- Cursus 1 -->
+            <div class="flex items-center gap-3">
+              <div class="checkbox-manual"></div>
+              <p class="text-[10px] leading-none text-condorcet-charcoal">
+                <span class="font-bold">Assistant.e social.e :</span> S. Averland <span class="text-condorcet-primary font-semibold">(stephanie.averland@condorcet.be)</span>
+              </p>
+            </div>
+
+            <!-- Cursus 2 -->
+            <div class="flex items-center gap-3">
+              <div class="checkbox-manual"></div>
+              <p class="text-[10px] leading-none text-condorcet-charcoal">
+                <span class="font-bold">Éducateur.trice spécialisé.e en acc. psycho-éducatif :</span> V. Dusart <span class="text-condorcet-primary font-semibold">(ens.marcinelle@condorcet.be)</span>
+              </p>
+            </div>
+
+            <!-- Cursus 3 (Scindé - Partie A) -->
+            <div class="flex items-center gap-3">
+              <div class="checkbox-manual"></div>
+              <p class="text-[10px] leading-none text-condorcet-charcoal">
+                <span class="font-bold">Enseignement Section 2 (jour/décalé) :</span> F. PAVET <span class="text-condorcet-primary font-semibold">(ens.marcinelle@condorcet.be)</span>
+              </p>
+            </div>
+
+            <!-- Cursus 3 (Scindé - Partie B - Shortened) -->
+            <div class="flex items-center gap-3">
+              <div class="checkbox-manual"></div>
+              <p class="text-[10px] leading-none text-condorcet-charcoal">
+                <span class="font-bold">Enseignement Section 3 (Form. manuelle, technique, techno. & num.) :</span> F. PAVET <span class="text-condorcet-primary font-semibold">(ens.marcinelle@condorcet.be)</span>
+              </p>
+            </div>
+
+            <!-- Cursus 4 -->
+            <div class="flex items-center gap-3">
+              <div class="checkbox-manual"></div>
+              <p class="text-[10px] leading-none text-condorcet-charcoal">
+                <span class="font-bold">Communication :</span> S. Paques <span class="text-condorcet-primary font-semibold">(sybille.paques@condorcet.be)</span>
+              </p>
+            </div>
+
+            <!-- Cursus 5 -->
+            <div class="flex items-center gap-3">
+              <div class="checkbox-manual"></div>
+              <p class="text-[10px] leading-none text-condorcet-charcoal">
+                <span class="font-bold">Écriture multimédia :</span> S. Paques <span class="text-condorcet-primary font-semibold">(sybille.paques@condorcet.be)</span>
+              </p>
+            </div>
+
+            <!-- Cursus 6 -->
+            <div class="flex items-center gap-3">
+              <div class="checkbox-manual"></div>
+              <p class="text-[10px] leading-none text-condorcet-charcoal">
+                <span class="font-bold">Gestion des ressources humaines :</span> M. Gargiulo <span class="text-condorcet-primary font-semibold">(maria.gargiulo@condorcet.be)</span>
+              </p>
+            </div>
+
+            <!-- Cursus 7 -->
+            <div class="flex items-center gap-3">
+              <div class="checkbox-manual"></div>
+              <p class="text-[10px] leading-none text-condorcet-charcoal">
+                <span class="font-bold">Ingénierie et action sociales :</span> M. Gargiulo <span class="text-condorcet-primary font-semibold">(maria.gargiulo@condorcet.be)</span>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 2 : DOCUMENTS OBLIGATOIRES -->
+        <div class="mb-5">
+          <h3 class="text-xs uppercase font-extrabold text-condorcet-dark tracking-wider mb-2.5 flex items-center gap-2 border-b border-condorcet-primary pb-1">
+            <span>2. Documents obligatoires (Pour tous)</span>
+          </h3>
+          
+          <div class="space-y-2.5">
+            <!-- Doc 2 (Précédent Doc 2) -->
+            <div class="flex items-start gap-3">
+              <div class="checkbox-manual mt-0.5"></div>
+              <div>
+                <span class="font-bold text-xs text-condorcet-charcoal">Une photocopie recto-verso de votre pièce d'identité</span>
+                <p class="text-[11px] text-condorcet-charcoal/80 leading-tight">Carte d'identité nationale ou passeport en cours de validité.</p>
+              </div>
+            </div>
+
+            <!-- Doc 3 (Précédent Doc 3) -->
+            <div class="flex items-start gap-3">
+              <div class="checkbox-manual mt-0.5"></div>
+              <div>
+                <span class="font-bold text-xs text-condorcet-charcoal">Une photo d'identité récente</span>
+                <p class="text-[11px] text-condorcet-charcoal/80 leading-tight">Format officiel carte d'identité.</p>
+              </div>
+            </div>
+
+            <!-- Doc 4 (Précédent Doc 4) -->
+            <div class="flex items-start gap-3">
+              <div class="checkbox-manual mt-0.5"></div>
+              <div>
+                <span class="font-bold text-xs text-condorcet-charcoal">Le titre d'accès au cursus choisi (original ou copie certifiée)</span>
+                <p class="text-[11px] text-condorcet-charcoal/80 leading-tight">Formule provisoire du CESS, diplôme de fin d'études secondaires ou équivalence officielle.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 3 : SELON VOTRE SITUATION -->
+        <div class="mb-5">
+          <h3 class="text-xs uppercase font-extrabold text-condorcet-dark tracking-wider mb-2.5 flex items-center gap-2 border-b border-condorcet-primary pb-1">
+            <span>3. Selon votre situation personnelle (Si applicable)</span>
+          </h3>
+          
+          <div class="space-y-2.5">
+            <!-- Situation A -->
+            <div class="flex items-start gap-3">
+              <div class="checkbox-manual mt-0.5"></div>
+              <div>
+                <span class="font-bold text-xs text-condorcet-charcoal">Demande ou attestation de bourse d'études</span>
+                <p class="text-[11px] text-condorcet-charcoal/80 leading-tight">Preuve d'introduction du dossier auprès d'Allocations d'études de la FWB (le cas échéant).</p>
+              </div>
+            </div>
+
+            <!-- Situation B -->
+            <div class="flex items-start gap-3">
+              <div class="checkbox-manual mt-0.5"></div>
+              <div>
+                <span class="font-bold text-xs text-condorcet-charcoal">Bilan de santé antérieur</span>
+                <p class="text-[11px] text-condorcet-charcoal/80 leading-tight">Si réalisé lors d'études supérieures antérieures en Communauté française de Belgique.</p>
+              </div>
+            </div>
+
+            <!-- Situation C -->
+            <div class="flex items-start gap-3">
+              <div class="checkbox-manual mt-0.5"></div>
+              <div>
+                <span class="font-bold text-xs text-condorcet-charcoal">Attestation d'absence de dette</span>
+                <p class="text-[11px] text-condorcet-charcoal/80 leading-tight">Pour tout étudiant ayant déjà suivi des études supérieures en CFB après l'obtention du CESS : preuve d'absence de dette envers chaque institution d'inscription précédente (depuis l'année académique 2014-2015).</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 4 : PARCOURS ANTERIEUR -->
+        <div class="mb-5">
+          <h3 class="text-xs uppercase font-extrabold text-condorcet-dark tracking-wider mb-2.5 flex items-center gap-2 border-b border-condorcet-primary pb-1">
+            <span>4. Justification du parcours antérieur (Année par année, sans interruption)</span>
+          </h3>
+          <p class="text-[10px] text-condorcet-charcoal/90 leading-tight mb-2">
+            Si vous avez poursuivi des études supérieures ou exercé une activité après l'obtention de votre diplôme secondaire, vous devez fournir les justificatifs suivants, <strong>couvrant chaque année complète</strong> :
+          </p>
+          
+          <div class="grid grid-cols-1 gap-4 pl-1">
+            <div class="border border-slate-200 rounded-lg p-2.5 space-y-2 bg-condorcet-light/30 print-border">
+              <!-- Justif A -->
+              <div class="flex items-start gap-3">
+                <div class="checkbox-manual mt-0.5"></div>
+                <div>
+                  <span class="font-bold text-[10px] text-condorcet-dark uppercase tracking-wide">Option A : Études supérieures antérieures</span>
+                  <p class="text-[9.5px] text-condorcet-charcoal/80 leading-tight mt-0.5">Attestations de fréquentation scolaire régulières ET relevés de notes signés pour chaque session.</p>
+                </div>
+              </div>
+
+              <!-- Justif B -->
+              <div class="flex items-start gap-3 border-t border-slate-200 pt-1.5">
+                <div class="checkbox-manual mt-0.5"></div>
+                <div>
+                  <span class="font-bold text-[10px] text-condorcet-dark uppercase tracking-wide">Option B : Activités professionnelles ou de réinsertion</span>
+                  <p class="text-[9.5px] text-condorcet-charcoal/80 leading-tight mt-0.5">Contrat de travail + fiches de salaire, ou attestation d'inscription Forem / Pôle Emploi (avec historique).</p>
+                </div>
+              </div>
+
+              <!-- Justif C -->
+              <div class="flex items-start gap-3 border-t border-slate-200 pt-1.5">
+                <div class="checkbox-manual mt-0.5"></div>
+                <div>
+                  <span class="font-bold text-[10px] text-condorcet-dark uppercase tracking-wide">Option C : Déclaration sur l'honneur (À défaut de preuves)</span>
+                  <p class="text-[9.5px] text-condorcet-charcoal/80 leading-tight mt-0.5">Déclaration sur l'honneur rédigée, datée et signée par l'étudiant décrivant précisément l'activité de l'année.</p>
+                </div>
+              </div>
+
+              <!-- Justif D -->
+              <div class="flex items-start gap-3 border-t border-slate-200 pt-1.5">
+                <div class="checkbox-manual mt-0.5"></div>
+                <div>
+                  <span class="font-bold text-[10px] text-condorcet-dark uppercase tracking-wide">Option D : Justificatif d'abandon ou de force majeure</span>
+                  <p class="text-[9.5px] text-slate-600 leading-tight mt-0.5">Tout élément probant pouvant justifier un abandon tardif ou un refus d'inscription antérieure.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- BAS DE PAGE / LIEN ET QR CODE -->
+      <div class="mt-6 pt-3 border-t border-slate-200 text-xs">
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-6">
+          <div class="flex-grow space-y-3 w-full sm:w-auto">
+            
+            <!-- LIEN DES PROCÉDURES -->
+            <div class="pt-1">
+              <span class="font-bold text-condorcet-dark block uppercase tracking-wider mb-1">Procédures d'inscription en ligne :</span>
+              <a href="https://www.condorcet.be/inscription/procedures-dinscription" target="_blank" class="text-condorcet-primary hover:text-condorcet-dark hover:underline font-semibold text-xs break-all flex items-center gap-1">
+                <span>https://www.condorcet.be/inscription/procedures-dinscription</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 inline no-print text-condorcet-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </a>
+            </div>
+
+            <!-- AVERTISSEMENT IMPORTANT -->
+            <div class="border-l-4 border-red-500 bg-red-50 py-1.5 pl-2.5 pr-2.5 rounded-r-lg print-bg-red print-border">
+              <div class="text-[10px] text-red-950 leading-relaxed">
+                Vous ne serez considéré comme <strong class="font-bold underline">définitivement inscrit</strong> que lorsque vous aurez fourni l'ensemble de vos documents administratifs requis et que vous vous serez acquitté du payement des droits d'inscription (ou du moins de l'acompte), au plus tard le <strong class="font-bold text-red-700">30 septembre</strong> de l'année académique en cours.
+              </div>
+            </div>
+
+          </div>
+          <!-- Bloc QR Code scannable et esthétique -->
+          <div class="flex-shrink-0 flex flex-col items-center text-center bg-condorcet-light/50 p-2 rounded-lg border border-condorcet-primary/20 print-bg-condorcet-light print-border w-28 shadow-sm">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=https%3A%2F%2Fwww.condorcet.be%2Finscription%2Fprocedures-dinscription" alt="QR Code Procédures d'inscription" class="w-16 h-16 mb-1" onerror="this.onerror=null; this.src='https://placehold.co/100x100/54909b/ffffff?text=QR+Code';">
+            <span class="text-[8px] font-bold text-condorcet-dark leading-tight uppercase tracking-wider">Scanner pour<br>les détails</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    const selectAnnee = document.getElementById('select-annee');
+    const printAnnee = document.getElementById('print-annee');
+    
+    if (selectAnnee && printAnnee) {
+      selectAnnee.addEventListener('change', function() {
+        printAnnee.textContent = this.value;
+      });
+    }
+  </script>
+</body>
+</html>
